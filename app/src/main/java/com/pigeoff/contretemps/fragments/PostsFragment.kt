@@ -32,10 +32,12 @@ class PostsFragment(
 
     var mDataLoaded: OnDatasLoaded? = null
     var isOkToLoad = true
+    var loadingDeleted = false
 
     //Compteur d'articles
     var allPosts = arrayListOf<JSONPost>()
     var maxPages = 2
+    var maxPosts = 2
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return View.inflate(context, R.layout.fragment_posts, null)
@@ -75,7 +77,7 @@ class PostsFragment(
 
         httpClient.setOnPostsFetchedListener(object : HTTPClient.OnPostsFetchedListener {
             override fun onPostsFetchedListener(posts: ArrayList<JSONPost>?, maxPosts: Int?, maxPages: Int?) {
-                addArticlesToRecycler(posts, maxPages)
+                addArticlesToRecycler(posts, maxPages, maxPosts)
             }
         })
 
@@ -133,10 +135,11 @@ class PostsFragment(
         }
     }
 
-    fun addArticlesToRecycler(posts: ArrayList<JSONPost>?, mPa: Int?) {
+    fun addArticlesToRecycler(posts: ArrayList<JSONPost>?, mPa: Int?, mPo: Int?) {
         //On arrête l'UI chargement
 
         maxPages = mPa ?: maxPages
+        maxPosts = mPo ?: maxPosts
 
         System.out.println(adapter.page)
         System.out.println(maxPages)
@@ -150,6 +153,10 @@ class PostsFragment(
             allPosts.addAll(posts)
             adapter.page++
             adapter.insertItems(posts)
+
+            if (maxPosts > 0) {
+                adapter.setMaxPosts(maxPosts)
+            }
         }
 
         //Sinon on affiche l'erreur
@@ -173,26 +180,4 @@ class PostsFragment(
         }
     }
 
-    /*suspend fun update(recyclerView: RecyclerView, search: String?) {
-        Log.i("INFO", "Chargement page")
-        val adapter = recyclerView.adapter as PostAdapter
-        val newPosts = ArrayList<JSONPost>()
-        var i = 1
-
-        while (i <= adapter.itemCount/10) {
-            try {
-                val aPosts = httpClient.posts(i, type, num)
-                newPosts.addAll(aPosts)
-            }
-            catch (e: Exception) {
-                Log.e("Erreur updating recyclerview", e.message.toString())
-            }
-            i++
-        }
-
-        withContext(Dispatchers.Main) {
-            adapter.updatePosts(newPosts)
-            if (swiperefresh.isRefreshing) swiperefresh.isRefreshing = false
-        }
-    }*/
 }
